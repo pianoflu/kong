@@ -90,15 +90,17 @@ return {
           connections_handled = tonumber(handled),
           total_requests = tonumber(total)
         },
-        database = {}
+        database = {
+          reachable = false
+        }
       }
 
-      for k, v in pairs(dao.daos) do
-        local count, err = v:count()
-        if err then
-          return helpers.responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
-        end
-        status_response.database[k] = count
+      -- ping DB
+      local err
+      status_response.database.reachable, err = dao.db:is_reachable()
+
+      if err ~= nil then
+        ngx.log(ngx.ERR, err)
       end
 
       return helpers.responses.send_HTTP_OK(status_response)
